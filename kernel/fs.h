@@ -30,6 +30,7 @@ struct inode*   idup(struct inode*);
 void            iinit();
 void            ilock(struct inode*);
 void            iput(struct inode*);
+void            itrunc(struct inode*);
 void            iunlock(struct inode*);
 void            iunlockput(struct inode*);
 void            iupdate(struct inode*);
