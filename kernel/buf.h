@@ -1,3 +1,9 @@
+#pragma once
+
+#include "fs_format.h"
+#include "sleeplock.h"
+#include "types.h"
+
 struct buf {
   int valid;   // has data been read from disk?
   int disk;    // does disk "own" buf?
@@ -9,4 +15,3 @@ struct buf {
   struct buf *next;
   uchar data[BSIZE];
 };
-
