@@ -93,6 +93,7 @@ int             fork(void);
 int             growproc(int);
 pagetable_t     proc_pagetable(struct proc *);
 void            proc_freepagetable(pagetable_t, uint64);
+void            proc_mapstacks(pagetable_t);
 int             kill(int);
 struct proc*    myproc();
 void            procinit(void);
