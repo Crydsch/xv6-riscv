@@ -219,8 +219,6 @@ userinit(void)
   
   // allocate one user page and copy init's instructions
   // and data into it.
-  if (!p)
-      return
 
   uvminit(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
