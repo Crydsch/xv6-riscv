@@ -62,9 +62,6 @@ CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
 FLAGS += -I.
-# Flags for static analysis
-#CFLAGS += -Wanalyzer-possible-null-argument -Wanalyzer-possible-null-dereference 
-#CFLAGS += -Wanalyzer-null-argument -Wanalyzer-null-dereference 
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
@@ -173,3 +170,42 @@ qemu: $K/kernel fs.img
 qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
+
+# Appended K means that only the kernel is compiled with the additional flag
+# This is necessary since sometimes problems only occur in one of them
+
+# Compile with kernel + userspace with GCC static analysis enabled
+# -fanalyzer:			GCC static analysis (for GCC >= 10.0 only)
+# (https://developers.redhat.com/blog/2020/03/26/static-analysis-in-gcc-10/)
+staticAnalysisK: CFLAGS += -fanalyzer
+staticAnalysisK: $K/kernel 
+
+staticAnalysis: CFLAGS += -fanalyzer
+staticAnalysis: $K/kernel fs.img
+
+# Compile with undefined behavior sanitizer enabled
+# -fsanitize=undefined:	Fast undefined behavior check
+# (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
+ubsanK: CFLAGS += -fsanitize=undefined
+ubsanK: $K/kernel
+
+ubsan: CFLAGS += -fsanitize=undefined
+ubsan: $K/kernel fs.img
+
+# Compile with leak sanitizer enabled
+# -fsanitize=leak	    Basic memory leak sanitizer
+# (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
+asanK: CFLAGS += -fsanitize=leak
+asanK: $K/kernel
+
+asan: CFLAGS += -fsanitize=leak
+asan: $K/kernel fs.img
+
+# Compile with address sanitizer enabled
+# -fsanitize=address:	Address sanitizer
+# (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
+lsanK: CFLAGS += -fanalyzer
+lsanK: $K/kernel
+
+lsan: CFLAGS += -fanalyzer
+lsan: $K/kernel fs.img
