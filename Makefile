@@ -177,10 +177,10 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 # Compile with kernel + userspace with GCC static analysis enabled
 # -fanalyzer:			GCC static analysis (for GCC >= 10.0 only)
 # (https://developers.redhat.com/blog/2020/03/26/static-analysis-in-gcc-10/)
-staticAnalysisK: CFLAGS += -fanalyzer
+staticAnalysisK: CFLAGS += -fanalyzer -Wno-analyzer-null-dereference
 staticAnalysisK: $K/kernel 
 
-staticAnalysis: CFLAGS += -fanalyzer
+staticAnalysis: CFLAGS += -fanalyzer -Wno-analyzer-null-dereference
 staticAnalysis: $K/kernel fs.img
 
 # Compile with undefined behavior sanitizer enabled
