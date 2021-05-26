@@ -177,35 +177,27 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 # Compile with kernel + userspace with GCC static analysis enabled
 # -fanalyzer:			GCC static analysis (for GCC >= 10.0 only)
 # (https://developers.redhat.com/blog/2020/03/26/static-analysis-in-gcc-10/)
-staticAnalysisK: CFLAGS += -fanalyzer -Wno-analyzer-null-dereference -Wno-analyzer-malloc-leak
+override $(CFLAGS) -fanalyzer -Wno-analyzer-null-dereference -Wno-analyzer-malloc-leak
 staticAnalysisK: $K/kernel 
-
-staticAnalysis: CFLAGS += -fanalyzer -Wno-analyzer-null-dereference
 staticAnalysis: $K/kernel fs.img
 
 # Compile with undefined behavior sanitizer enabled
 # -fsanitize=undefined:	Fast undefined behavior check
 # (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
-ubsanK: CFLAGS += -fsanitize=undefined
+override $(CFLAGS) -fsanitize=undefined
 ubsanK: $K/kernel
-
-ubsan: CFLAGS += -fsanitize=undefined
 ubsan: $K/kernel fs.img
 
 # Compile with leak sanitizer enabled
 # -fsanitize=leak	    Basic memory leak sanitizer
 # (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
-asanK: CFLAGS += -fsanitize=leak
+override $(CFLAGS) -fsanitize=leak
 asanK: $K/kernel
-
-asan: CFLAGS += -fsanitize=leak
 asan: $K/kernel fs.img
 
 # Compile with address sanitizer enabled
 # -fsanitize=address:	Address sanitizer
 # (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
-lsanK: CFLAGS += -fanalyzer
+override $(CFLAGS) -fsanitize=address
 lsanK: $K/kernel
-
-lsan: CFLAGS += -fanalyzer
 lsan: $K/kernel fs.img
