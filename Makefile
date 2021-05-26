@@ -51,7 +51,7 @@ endif
 
 QEMU = qemu-system-riscv64
 
-CC = $(TOOLPREFIX)gcc
+CC = $(TOOLPREFIX)gcc-11
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
@@ -171,3 +171,41 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
+# Appended K means that only the kernel is compiled with the additional flag
+# This is necessary since sometimes problems only occur in one of them
+
+# Compile with kernel + userspace with GCC static analysis enabled
+# -fanalyzer:			GCC static analysis (for GCC >= 10.0 only)
+# (https://developers.redhat.com/blog/2020/03/26/static-analysis-in-gcc-10/)
+staticAnalysisK: CFLAGS += -fanalyzer -Wno-analyzer-null-dereference -Wno-analyzer-malloc-leak
+staticAnalysisK: $K/kernel 
+
+staticAnalysis: CFLAGS += -fanalyzer -Wno-analyzer-null-dereference
+staticAnalysis: $K/kernel fs.img
+
+# Compile with undefined behavior sanitizer enabled
+# -fsanitize=undefined:	Fast undefined behavior check
+# (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
+ubsanK: CFLAGS += -fsanitize=undefined
+ubsanK: $K/kernel
+
+ubsan: CFLAGS += -fsanitize=undefined
+ubsan: $K/kernel fs.img
+
+# Compile with leak sanitizer enabled
+# -fsanitize=leak	    Basic memory leak sanitizer
+# (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
+asanK: CFLAGS += -fsanitize=leak
+asanK: $K/kernel
+
+asan: CFLAGS += -fsanitize=leak
+asan: $K/kernel fs.img
+
+# Compile with address sanitizer enabled
+# -fsanitize=address:	Address sanitizer
+# (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
+lsanK: CFLAGS += -fanalyzer
+lsanK: $K/kernel
+
+lsan: CFLAGS += -fanalyzer
+lsan: $K/kernel fs.img
