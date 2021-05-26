@@ -214,7 +214,9 @@ userinit(void)
 {
   struct proc *p;
 
-  p = allocproc();
+  if ((p = allocproc()) == 0) {
+    panic("userinit");
+  }
   initproc = p;
   
   // allocate one user page and copy init's instructions
