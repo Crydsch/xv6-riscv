@@ -195,17 +195,17 @@ ubsan: $K/kernel fs.img
 # Compile with leak sanitizer enabled
 # -fsanitize=leak	    Basic memory leak sanitizer
 # (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
-asanK: CFLAGS += -fsanitize=leak
-asanK: $K/kernel
+lsanK: CFLAGS += -fsanitize=leak
+lsanK: $K/kernel
 
-asan: CFLAGS += -fsanitize=leak
-asan: $K/kernel fs.img
+lsan: CFLAGS += -fsanitize=leak
+lsan: $K/kernel fs.img
 
 # Compile with address sanitizer enabled
 # -fsanitize=address:	Address sanitizer
 # (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
-lsanK: CFLAGS += -fanalyzer
-lsanK: $K/kernel
+asanK: CFLAGS += -fsanitize=address
+asanK: $K/kernel
 
-lsan: CFLAGS += -fanalyzer
-lsan: $K/kernel fs.img
+asan: CFLAGS += -fsanitize=address
+asan: $K/kernel fs.img
