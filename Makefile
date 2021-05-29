@@ -51,7 +51,7 @@ endif
 
 QEMU = qemu-system-riscv64
 
-CC = $(TOOLPREFIX)gcc-11
+CC = $(TOOLPREFIX)gcc-11.1.0
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
