@@ -1043,6 +1043,9 @@ reparent2(char *s)
   exit(0);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wanalyzer-malloc-leak"
+
 // allocate all mem, free it, and allocate again
 void
 mem(char *s)
@@ -1079,6 +1082,7 @@ mem(char *s)
     exit(xstatus);
   }
 }
+#pragma GCC diagnostic pop
 
 // More file system tests
 
