@@ -161,6 +161,8 @@ QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nogr
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
+build: $K/kernel fs.img
+
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
 
@@ -209,3 +211,19 @@ asanK: $K/kernel
 
 asan: CFLAGS += -fsanitize=address
 asan: $K/kernel fs.img
+
+
+# target test
+QEMUOPTSTEST = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) #-nographic
+QEMUOPTSTEST += -drive file=fs.img,if=none,format=raw,id=x0
+QEMUOPTSTEST += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+## disable display (we only interact with the guest via serial/uart)
+QEMUOPTSTEST += -display none
+## redirect the guest serial device to pipes on host
+QEMUOPTSTEST += -chardev pipe,id=testpipe,path=/testenv/serial -serial chardev:testpipe
+## redirect the qemu monitor to pipes on host
+QEMUOPTSTEST += -chardev pipe,id=qemumonpipe,path=/testenv/qemumon -mon chardev=qemumonpipe
+
+qemu-test: $K/kernel fs.img
+	$(QEMU) $(QEMUOPTSTEST)
+
