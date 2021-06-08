@@ -222,7 +222,7 @@ QEMUOPTSTEST += -display none
 ## redirect the guest serial device to pipes on host
 QEMUOPTSTEST += -chardev pipe,id=testpipe,path=/testenv/serial -serial chardev:testpipe
 ## redirect the qemu monitor to pipes on host
-QEMUOPTSTEST += -chardev pipe,id=qemumonpipe,path=/testenv/qemumon -mon chardev=qemumonpipe
+QEMUOPTSTEST += -chardev pipe,id=qemumonpipe,path=/testenv/qemumon -mon chardev=qemumonpipe,mode=control
 
 qemu-test: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTSTEST)
