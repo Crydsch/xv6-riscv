@@ -17,6 +17,8 @@ union header {
 };
 
 typedef union header Header;
+// Note: sizeof(Header)=16 due to forced alignment
+
 
 static Header base;
 static Header *freep;
@@ -66,12 +68,14 @@ malloc(uint nbytes)
   Header *p, *prevp;
   uint nunits;
 
+  // number of header sized units (+1 for header itself)
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
+  // initialize
   if((prevp = freep) == 0){
     base.s.ptr = freep = prevp = &base;
     base.s.size = 0;
   }
-  for(p = prevp->s.ptr; ; prevp = p, p = p->s.ptr){
+  for(p = prevp->s.ptr; ; prevp = p, p = p->s.ptr){ // walk free list
     if(p->s.size >= nunits){
       if(p->s.size == nunits)
         prevp->s.ptr = p->s.ptr;
