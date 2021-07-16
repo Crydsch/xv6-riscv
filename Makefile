@@ -50,6 +50,7 @@ TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' 
 endif
 
 QEMU = qemu-system-riscv64
+GDB = $(TOOLPREFIX)gdb
 
 CC = $(TOOLPREFIX)gcc-11.1.0
 AS = $(TOOLPREFIX)gas
@@ -155,6 +156,7 @@ GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
+
 ifndef CPUS
 CPUS := 3
 endif
@@ -162,6 +164,8 @@ endif
 QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+
+GDBOPTS = --nx --x .gdbinit
 
 build: $K/kernel fs.img
 
@@ -172,8 +176,11 @@ qemu: $K/kernel fs.img
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
 qemu-gdb: $K/kernel .gdbinit fs.img
-	@echo "*** Now run 'gdb' in another window." 1>&2
+	@echo "*** Now run 'make gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
+
+gdb:
+	$(GDB) $(GDBOPTS)
 
 # Appended K means that only the kernel is compiled with the additional flag
 # This is necessary since sometimes problems only occur in one of them
@@ -222,12 +229,24 @@ QEMUOPTSTEST += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 # disable display (we only interact with the guest via serial/uart)
 QEMUOPTSTEST += -display none
 # redirect the guest serial device to pipes on host
-QEMUOPTSTEST += -chardev pipe,id=testpipe,path=/testenv/serial -serial chardev:testpipe
+QEMUOPTSTEST += -chardev pipe,id=vmpipe,path=/tmp/gbs_test/vm -serial chardev:vmpipe
 # redirect the qemu monitor to pipes on host
-QEMUOPTSTEST += -chardev pipe,id=qemumonpipe,path=/testenv/qemumon -mon chardev=qemumonpipe,mode=control
+QEMUOPTSTEST += -chardev pipe,id=qemupipe,path=/tmp/gbs_test/qemu -mon chardev=qemupipe,mode=control
 
+GDBOPTSTEST = --nx --interpreter=mi3
+
+# Note: This target is for automated testing
 qemu-test: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTSTEST)
 
+# Note: This target is for automated testing with gdb support
 qemu-test-gdb: $K/kernel .gdbinit fs.img
 	$(QEMU) $(QEMUOPTSTEST) -S $(QEMUGDB)
+
+# Note: This target is for automated testing in conjunction with qemu-test-gdb
+#       The input redirection is required to trick gdb into using named pipes
+# ? use unbuffer -p or stdbuf -i0 -o0 -e0 ?
+# ? necessary for mi3 ?
+test-gdb:
+	tail -f /tmp/gbs_test/gdb.in | $(GDB) $(GDBOPTSTEST) > /tmp/gbs_test/gdb.out 2>&1
+
