@@ -236,17 +236,16 @@ QEMUOPTSTEST += -chardev pipe,id=qemupipe,path=/tmp/gbs_test/qemu -mon chardev=q
 GDBOPTSTEST = --nx --interpreter=mi3
 
 # Note: This target is for automated testing
-qemu-test: $K/kernel fs.img
+test-qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTSTEST)
 
 # Note: This target is for automated testing with gdb support
-qemu-test-gdb: $K/kernel .gdbinit fs.img
+test-qemu-gdb: $K/kernel .gdbinit fs.img
 	$(QEMU) $(QEMUOPTSTEST) -S $(QEMUGDB)
 
-# Note: This target is for automated testing in conjunction with qemu-test-gdb
-#       The input redirection is required to trick gdb into using named pipes
-# ? use unbuffer -p or stdbuf -i0 -o0 -e0 ?
-# ? necessary for mi3 ?
+# Note: This target is for automated testing in conjunction with test-qemu-gdb
+#       stdbuf is used to encapsulate gdb's input/output and disable buffering.
+#       This is required to trick gdb into using named pipes.
 test-gdb:
-	tail -f /tmp/gbs_test/gdb.in | $(GDB) $(GDBOPTSTEST) > /tmp/gbs_test/gdb.out 2>&1
+	stdbuf -i0 -o0 -e0 riscv64-unknown-elf-gdb --nx --interpreter=mi3 < /tmp/gbs_test/gdb.in > /tmp/gbs_test/gdb.out
 
