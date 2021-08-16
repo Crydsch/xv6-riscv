@@ -26,15 +26,16 @@ main(int argc, char *argv[])
 
     do {
       // read command
-      if (readUntil(' ') == -1) {
+      if (read(0, buf, 2) != 2) {
         printf("error could not read command\n");
         exit(1);
       }
+      buf[1] = '\0'; // replace ' ' with terminating '\0'
 
       if (strcmp(buf, "m") == 0) { // malloc
         // read size
         if (readUntil(' ') == -1) {
-          printf("error could not read command\n");
+          printf("error could not read size\n");
           exit(1);
         }
         int size = atoi(buf);
@@ -57,16 +58,15 @@ main(int argc, char *argv[])
       } else if (strcmp(buf, "f") == 0) { // free
         // read address
         if (readUntil('\n') == -1) {
-          printf("error could not read char\n");
+          printf("error could not read address\n");
           exit(1);
         }
         void* addr = (void*)((long)atoi(buf));
         free(addr);
-        printf("ok \n");
+        printf("ok\n");
 
       } else if (strcmp(buf, "q") == 0) {
         // quit
-        readUntil('\n'); // discard input
         exit(0);
 
       } else {
