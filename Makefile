@@ -247,5 +247,5 @@ test-qemu-gdb: $K/kernel .gdbinit fs.img
 #       stdbuf is used to encapsulate gdb's input/output and disable buffering.
 #       This is required to trick gdb into using named pipes.
 test-gdb:
-	stdbuf -i0 -o0 -e0 riscv64-unknown-elf-gdb --nx --interpreter=mi3 < /tmp/gbs_test/gdb.in > /tmp/gbs_test/gdb.out
+	stdbuf -i0 -o0 -e0 $(GDB) --nx --interpreter=mi3 < /tmp/gbs_test/gdb.in > /tmp/gbs_test/gdb.out
 
