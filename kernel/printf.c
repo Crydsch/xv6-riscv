@@ -1,5 +1,5 @@
 //
-// formatted console output -- printf, panic.
+// formatted console output -- printf, debug_printf, panic.
 //
 
 #include <stdarg.h>
@@ -116,6 +116,68 @@ printf(char *fmt, ...)
     release(&pr.lock);
 }
 
+// Print debug output to the console. only understands %d, %x, %p, %s.
+// Output written with this function will be ignored by the tester.
+void
+debug_printf(char *fmt, ...)
+{
+  va_list ap;
+  int i, c, locking;
+  char *s;
+
+  locking = pr.locking;
+  if(locking)
+    acquire(&pr.lock);
+
+  if (fmt == 0)
+    panic("null fmt");
+
+  // Signal debug output start
+  consputc(0x11);  // 0x11 == ascii device control 1
+
+  va_start(ap, fmt);
+  for(i = 0; (c = fmt[i] & 0xff) != 0; i++){
+    if(c != '%'){
+      consputc(c);
+      continue;
+    }
+    c = fmt[++i] & 0xff;
+    if(c == 0)
+      break;
+    switch(c){
+    case 'd':
+      printint(va_arg(ap, int), 10, 1);
+      break;
+    case 'x':
+      printint(va_arg(ap, int), 16, 1);
+      break;
+    case 'p':
+      printptr(va_arg(ap, uint64));
+      break;
+    case 's':
+      if((s = va_arg(ap, char*)) == 0)
+        s = "(null)";
+      for(; *s; s++)
+        consputc(*s);
+      break;
+    case '%':
+      consputc('%');
+      break;
+    default:
+      // Print unknown % sequence to draw attention.
+      consputc('%');
+      consputc(c);
+      break;
+    }
+  }
+
+  // Signal debug output end
+  consputc(0x12);  // 0x12 == ascii device control 2
+
+  if(locking)
+    release(&pr.lock);
+}
+
 void
 panic(char *s)
 {
@@ -134,3 +196,4 @@ printfinit(void)
   initlock(&pr.lock, "pr");
   pr.locking = 1;
 }
+

@@ -47,7 +47,7 @@ printptr(int fd, uint64 x) {
     putc(fd, digits[x >> (sizeof(uint64) * 8 - 4)]);
 }
 
-// Print to the given fd. Only understands %d, %x, %p, %s.
+// Print to the given fd.
 void
 vprintf(int fd, const char *fmt, va_list ap)
 {
@@ -111,3 +111,21 @@ printf(const char *fmt, ...)
   va_start(ap, fmt);
   vprintf(1, fmt, ap);
 }
+
+// Print debug output.
+// Output written with this function will be ignored by the tester.
+void
+debug_printf(const char *fmt, ...)
+{
+  va_list ap;
+
+  // Signal debug output start
+  putc(1, 0x11);  // 0x11 == ascii device control 1
+
+  va_start(ap, fmt);
+  vprintf(1, fmt, ap);
+
+  // Signal debug output end
+  putc(1, 0x12);  // 0x12 == ascii device control 2
+}
+
