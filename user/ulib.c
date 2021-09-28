@@ -101,6 +101,9 @@ memmove(void *vdst, const void *vsrc, int n)
   char *dst;
   const char *src;
 
+  if(n == 0)
+    return vdst;
+
   dst = vdst;
   src = vsrc;
   if (src > dst) {
