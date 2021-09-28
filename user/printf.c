@@ -128,4 +128,3 @@ debug_printf(const char *fmt, ...)
   // Signal debug output end
   putc(1, 0x12);  // 0x12 == ascii device control 2
 }
-

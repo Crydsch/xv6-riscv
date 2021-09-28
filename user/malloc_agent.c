@@ -9,7 +9,7 @@ int readUntil(const char delim) {
   do {
     if (read(0, buf+pos, 1) == 1) {
       if (buf[pos] == delim) {
-        buf[pos] = '\0'; // remove delim
+        buf[pos] = '\0'; // remove delim and terminate string
         return 0;
       }
       pos++;
