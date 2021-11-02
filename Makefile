@@ -31,10 +31,25 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o
 
+# Use one of the supported GCC prefixes
+ifndef GCC
+GCC := $(shell if command -v gcc-11.2.0 > /dev/null 2>&1; \
+	then echo 'gcc-11.2.0'; \
+	elif command -v gcc-11.1.0 > /dev/null 2>&1; \
+	then echo 'gcc-11.1.0'; \
+	elif command -v gcc-11 > /dev/null 2>&1; \
+	then echo 'gcc-11'; \
+	elif command -v gcc-10 > /dev/null 2>&1; \
+	then echo 'gcc-10'; \
+	elif command -v gcc > /dev/null 2>&1; \
+	then echo 'gcc'; \
+	else echo "Could not find GCC, please enter the correct version here manually"; \
+	fi)
+endif
+
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
 #TOOLPREFIX = 
-
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
 TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
@@ -49,25 +64,26 @@ TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' 
 	echo "***" 1>&2; exit 1; fi)
 endif
 
-ifndef GCCSUFFIX
-GCCSUFFIX := $(shell if command -v gcc-11 &> /dev/null; \
-	then echo "-11"; \
-	elif command -v gcc &> /dev/null; \
-	then exit; \
-	elif command -v gcc-10 &> /dev/null; \
-	then echo "-10"; \
-	elif command -v gcc-11.1.0 &> /dev/null; \
-	then echo "-11.1.0"; \
-	elif command -v gcc-11.2.0 &> /dev/null; \
-	then echo "-11.2.0"; \
-	else echo "Could not find GCC, please enter the correct version manually"; \
-	fi;)
+# Use one of the supported GCC prefixes
+ifndef RISCVGCCSUFFIX
+RISCVGCCSUFFIX := $(shell if command -v $(TOOLPREFIX)gcc-11.2.0 > /dev/null 2>&1; \
+	then echo 'gcc-11.2.0'; \
+	elif command -v $(TOOLPREFIX)gcc-11.1.0 > /dev/null 2>&1; \
+	then echo 'gcc-11.1.0'; \
+	elif command -v $(TOOLPREFIX)gcc-11 > /dev/null 2>&1; \
+	then echo 'gcc-11'; \
+	elif command -v $(TOOLPREFIX)gcc-10 > /dev/null 2>&1; \
+	then echo 'gcc-10'; \
+	elif command -v $(TOOLPREFIX)gcc > /dev/null 2>&1; \
+	then echo 'gcc'; \
+	else echo "Could not find GCC, please enter the correct version here manually"; \
+	fi)
 endif
-		
-GCC = gcc$(GCCSUFFIX)
+
+
 QEMU = qemu-system-riscv64
 GDB = $(TOOLPREFIX)gdb
-CC = $(TOOLPREFIX)$(GCC)
+CC = $(TOOLPREFIX)$(RISCVGCCSUFFIX)
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
@@ -149,7 +165,7 @@ UPROGS= \
 	$U/_grind \
 	$U/_wc \
 	$U/_zombie \
-	$U/_malloc_agent \
+	$U/_malloc_agent
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -219,7 +235,7 @@ ubsan: CFLAGS += -fsanitize=undefined
 ubsan: $K/kernel fs.img
 
 # Compile with leak sanitizer enabled
-# -fsanitize=leak	    Basic memory leak sanitizer
+# -fsanitize=leak	   Basic memory leak sanitizer
 # (https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Debugging-Options.html#index-fsanitize_003dundefined-652)
 lsanK: CFLAGS += -fsanitize=leak
 lsanK: $K/kernel
