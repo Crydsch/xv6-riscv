@@ -49,10 +49,25 @@ TOOLPREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' 
 	echo "***" 1>&2; exit 1; fi)
 endif
 
+ifndef GCCSUFFIX
+GCCSUFFIX := $(shell if command -v gcc-11 &> /dev/null; \
+	then echo "-11"; \
+	elif command -v gcc &> /dev/null; \
+	then exit; \
+	elif command -v gcc-10 &> /dev/null; \
+	then echo "-10"; \
+	elif command -v gcc-11.1.0 &> /dev/null; \
+	then echo "-11.1.0"; \
+	elif command -v gcc-11.2.0 &> /dev/null; \
+	then echo "-11.2.0"; \
+	else echo "Could not find GCC, please enter the correct version manually"; \
+	fi;)
+endif
+		
+GCC = gcc$(GCCSUFFIX)
 QEMU = qemu-system-riscv64
 GDB = $(TOOLPREFIX)gdb
-
-CC = $(TOOLPREFIX)gcc-11
+CC = $(TOOLPREFIX)$(GCC)
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
@@ -109,7 +124,7 @@ $U/_forktest: $U/forktest.o $(ULIB)
 	$(OBJDUMP) -S $U/_forktest > $U/forktest.asm
 
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
-	$(CC) -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
+	$(GCC) -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
